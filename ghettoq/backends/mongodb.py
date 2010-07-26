@@ -25,12 +25,14 @@ class MongodbBackend(BaseBackend):
         return col
 
     def put(self, queue, message, priority = 0):
-        self.client.insert({"payload": message, "queue": queue})
+        self.client.insert({"payload": message, "queue": queue,
+                            "priority": priority})
 
     def get(self, queue):
         try:
             msg = self.client.database.command("findandmodify",
-                        "messages", query={"queue": queue}, remove=True)
+                        "messages", query={"queue": queue}, sort = {"priority": 1},
+                        remove=True)
         except OperationFailure:
             raise Empty("Empty queue")
         return msg["value"]["payload"]
